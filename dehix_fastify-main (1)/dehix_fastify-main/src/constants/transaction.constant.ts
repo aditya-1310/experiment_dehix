@@ -1,0 +1,11 @@
+export const TRANSACTION_ENDPOINT = "/transaction";
+export const CREATE_TRANSACTION = "";
+export const GET_ALL_TRANSACTION = "";
+export const GET_TRANSACTION_BY_ID = "/:transaction_id";
+export const DELETE_TRANSACTION_BY_ID = "/:transaction_id";
+export const GET_TRANSACTION_BY_TYPE = "/type";
+export const GET_TRANSACTION_BY_FROM = "/from";
+export const GET_TRANSACTION_BY_TO = "/to";
+export const GET_TRANSACTION_BY_FROM_TYPE = "/from_type";
+export const GET_TRANSACTION_BY_REFERENCE_ID = "/reference_id";
+export const UPDATE_TRANSACTION_BY_ID = "/:transaction_id";

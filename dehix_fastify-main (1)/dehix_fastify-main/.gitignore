@@ -1,0 +1,9 @@
+node_modules
+.env.dev
+dist
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+src/common/config
+.vscode

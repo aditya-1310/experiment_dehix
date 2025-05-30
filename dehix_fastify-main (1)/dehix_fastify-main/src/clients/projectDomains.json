@@ -1,0 +1,54 @@
+[
+  {
+    "label": "Decentralized Finance (DeFi)",
+    "description": "Financial services that operate on blockchain technology without centralized intermediaries."
+  },
+  {
+    "label": "Decentralized Applications (dApps)",
+    "description": "Applications that run on decentralized networks like blockchain, offering transparency and reduced reliance on centralized authorities."
+  },
+  {
+    "label": "Layer 1 Blockchains",
+    "description": "Base blockchain networks, such as Ethereum and Bitcoin, providing the foundational protocol for decentralized applications and transactions."
+  },
+  {
+    "label": "Layer 2 Solutions",
+    "description": "Scaling solutions built on top of Layer 1 blockchains to improve transaction speed and reduce costs."
+  },
+  {
+    "label": "Non-Fungible Tokens (NFTs)",
+    "description": "Unique digital assets that represent ownership of a specific item, artwork, or asset on the blockchain."
+  },
+  {
+    "label": "Decentralized Autonomous Organizations (DAOs)",
+    "description": "Organizations governed by smart contracts and community votes, operating without centralized leadership."
+  },
+  {
+    "label": "Interoperability Protocols",
+    "description": "Technologies that enable different blockchain networks to communicate and share data seamlessly."
+  },
+  {
+    "label": "Infrastructure Projects",
+    "description": "Blockchain initiatives focused on providing the foundational tools and systems for the decentralized ecosystem."
+  },
+  {
+    "label": "Social Media Platforms",
+    "description": "Decentralized social networks built on blockchain technology, offering enhanced privacy and user control over data."
+  },
+  {
+    "label": "Gaming Projects",
+    "description": "Blockchain-based gaming platforms that incorporate play-to-earn mechanics, NFTs, and decentralized ownership."
+  },
+  {
+    "label": "Privacy-Focused Applications",
+    "description": "Applications designed to prioritize user privacy and security, often utilizing cryptographic methods on the blockchain."
+  },
+  {
+    "label": "Stablecoins",
+    "description": "Cryptocurrencies designed to maintain a stable value, often pegged to fiat currencies like the US Dollar."
+  },
+  {
+    "label": "Marketplaces for Digital Assets",
+    "description": "Platforms enabling the buying, selling, and trading of digital assets like NFTs and cryptocurrencies."
+  }
+]

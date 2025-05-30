@@ -1,0 +1,82 @@
+[
+  {
+    "label": "Frontend",
+    "description": "The part of a web application that users interact with directly, including the layout and design."
+  },
+  {
+    "label": "Backend",
+    "description": "The server-side of a web application that handles the business logic and database interactions."
+  },
+  {
+    "label": "Database",
+    "description": "A structured system for storing, managing, and retrieving data."
+  },
+  {
+    "label": "Cloud Computing",
+    "description": "The delivery of computing services over the internet, allowing for flexible resources and scalability."
+  },
+  {
+    "label": "Mobile Development",
+    "description": "The process of creating applications that run on mobile devices, such as smartphones and tablets."
+  },
+  {
+    "label": "Machine Learning",
+    "description": "A subset of AI that enables systems to learn from data and improve their performance over time."
+  },
+  {
+    "label": "Data Science",
+    "description": "The field that combines statistics, data analysis, and machine learning to extract insights from structured and unstructured data."
+  },
+  {
+    "label": "DevOps",
+    "description": "A set of practices that combines software development and IT operations to shorten the development lifecycle."
+  },
+  {
+    "label": "Cybersecurity",
+    "description": "The practice of protecting systems, networks, and programs from digital attacks."
+  },
+  {
+    "label": "UI/UX Design",
+    "description": "The process of enhancing user satisfaction through improved usability and accessibility in products."
+  },
+  {
+    "label": "Networking",
+    "description": "The practice of connecting computers and devices to share resources and communicate."
+  },
+  {
+    "label": "Game Development",
+    "description": "The process of designing, creating, and deploying video games across various platforms."
+  },
+  {
+    "label": "E-Commerce",
+    "description": "The buying and selling of goods or services using the internet."
+  },
+  {
+    "label": "Social Media",
+    "description": "Platforms and technologies for creating and sharing content, and for social interaction."
+  },
+  {
+    "label": "Artificial Intelligence",
+    "description": "The simulation of human intelligence processes by machines, particularly computer systems."
+  },
+  {
+    "label": "Blockchain",
+    "description": "A decentralized digital ledger technology used to record transactions across multiple computers."
+  },
+  {
+    "label": "IoT (Internet Of Things)",
+    "description": "The network of physical devices connected to the internet, enabling them to collect and exchange data."
+  },
+  {
+    "label": "Big Data",
+    "description": "Extremely large datasets that require advanced tools and techniques for processing and analysis."
+  },
+  {
+    "label": "Web Scraping",
+    "description": "The process of automatically extracting information from websites."
+  },
+  {
+    "label": "Embedded Systems",
+    "description": "Specialized computing systems designed to perform dedicated functions within larger mechanical or electrical systems."
+  }
+]

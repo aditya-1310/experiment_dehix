@@ -1,0 +1,406 @@
+[
+  {
+    "label": "Python",
+    "description": "A versatile programming language used for web development, data analysis, artificial intelligence, and more."
+  },
+  {
+    "label": "JavaScript",
+    "description": "A dynamic scripting language primarily used for creating interactive web pages."
+  },
+  {
+    "label": "React",
+    "description": "A JavaScript library for building user interfaces, particularly single-page applications."
+  },
+  {
+    "label": "Node.js",
+    "description": "A JavaScript runtime that allows you to run JavaScript on the server side."
+  },
+  {
+    "label": "TypeScript",
+    "description": "A superset of JavaScript that adds static typing to the language, enhancing code quality."
+  },
+  {
+    "label": "Java",
+    "description": "A widely-used programming language known for its portability across platforms."
+  },
+  {
+    "label": "Spring Boot",
+    "description": "A framework for building Java-based enterprise applications, simplifying the setup of new services."
+  },
+  {
+    "label": "PHP",
+    "description": "A server-side scripting language primarily used for web development."
+  },
+  {
+    "label": "HTML",
+    "description": "The standard markup language for creating web pages and applications."
+  },
+  {
+    "label": "CSS",
+    "description": "A stylesheet language used to describe the presentation of web pages."
+  },
+  {
+    "label": "Angular",
+    "description": "A platform for building mobile and desktop web applications using TypeScript."
+  },
+  {
+    "label": "Vue.js",
+    "description": "A progressive JavaScript framework for building user interfaces."
+  },
+  {
+    "label": "Express.js",
+    "description": "A web application framework for Node.js, designed for building web applications and APIs."
+  },
+  {
+    "label": "MongoDB",
+    "description": "A NoSQL database that uses a document-oriented data model."
+  },
+  {
+    "label": "MySQL",
+    "description": "An open-source relational database management system."
+  },
+  {
+    "label": "PostgreSQL",
+    "description": "A powerful, open-source object-relational database system."
+  },
+  {
+    "label": "SQLite",
+    "description": "A C-language library that implements a small, fast, self-contained SQL database engine."
+  },
+  {
+    "label": "Firebase",
+    "description": "A platform developed by Google for creating mobile and web applications, providing backend services."
+  },
+  {
+    "label": "AWS",
+    "description": "Amazon Web Services; a comprehensive cloud platform offering computing power, storage, and other functionalities."
+  },
+  {
+    "label": "Azure",
+    "description": "Microsoft's cloud computing platform, offering a range of cloud services for building and managing applications."
+  },
+  {
+    "label": "Docker",
+    "description": "A platform for developing, shipping, and running applications inside containers."
+  },
+  {
+    "label": "Kubernetes",
+    "description": "An open-source system for automating the deployment, scaling, and management of containerized applications."
+  },
+  {
+    "label": "Git",
+    "description": "A version control system for tracking changes in source code during software development."
+  },
+  {
+    "label": "Jenkins",
+    "description": "An open-source automation server for building, testing, and deploying software."
+  },
+  {
+    "label": "CI/CD",
+    "description": "Continuous Integration and Continuous Deployment practices for automating software delivery."
+  },
+  {
+    "label": "RESTful API",
+    "description": "An architectural style for designing networked applications using HTTP requests."
+  },
+  {
+    "label": "GraphQL",
+    "description": "A query language for APIs that allows clients to request only the data they need."
+  },
+  {
+    "label": "Microservices",
+    "description": "An architectural style that structures an application as a collection of loosely coupled services."
+  },
+  {
+    "label": "Machine Learning",
+    "description": "A subset of AI that enables systems to learn from data and improve over time without explicit programming."
+  },
+  {
+    "label": "Artificial Intelligence",
+    "description": "The simulation of human intelligence processes by machines, especially computer systems."
+  },
+  {
+    "label": "Blockchain",
+    "description": "A decentralized digital ledger technology that records transactions across many computers."
+  },
+  {
+    "label": "Cybersecurity",
+    "description": "The practice of protecting systems, networks, and programs from digital attacks."
+  },
+  {
+    "label": "UI/UX Design",
+    "description": "The process of enhancing user satisfaction by improving the usability and accessibility of a product."
+  },
+  {
+    "label": "Responsive Web Design",
+    "description": "An approach to web design that makes web pages render well on various devices and window or screen sizes."
+  },
+  {
+    "label": "Bootstrap",
+    "description": "A front-end framework for developing responsive and mobile-first websites."
+  },
+  {
+    "label": "Tailwind CSS",
+    "description": "A utility-first CSS framework for creating custom designs without having to leave your HTML."
+  },
+  {
+    "label": "Sass",
+    "description": "A preprocessor scripting language that is interpreted or compiled into CSS."
+  },
+  {
+    "label": "Less",
+    "description": "A backward-compatible language extension for CSS."
+  },
+  {
+    "label": "WordPress",
+    "description": "An open-source content management system (CMS) for creating websites."
+  },
+  {
+    "label": "Joomla",
+    "description": "A free and open-source CMS for publishing web content."
+  },
+  {
+    "label": "Shopify",
+    "description": "An e-commerce platform that allows anyone to set up an online store."
+  },
+  {
+    "label": "Magento",
+    "description": "An open-source e-commerce platform written in PHP."
+  },
+  {
+    "label": "React Native",
+    "description": "A framework for building native apps using React."
+  },
+  {
+    "label": "Flutter",
+    "description": "A UI toolkit for building natively compiled applications for mobile, web, and desktop from a single codebase."
+  },
+  {
+    "label": "Ionic",
+    "description": "A framework for building cross-platform mobile applications using web technologies."
+  },
+  {
+    "label": "Swift",
+    "description": "A programming language developed by Apple for iOS and macOS development."
+  },
+  {
+    "label": "Kotlin",
+    "description": "A modern programming language that is fully interoperable with Java."
+  },
+  {
+    "label": "C#",
+    "description": "A modern, object-oriented programming language developed by Microsoft."
+  },
+  {
+    "label": "ASP.NET",
+    "description": "A framework for building web applications and services with .NET and C#."
+  },
+  {
+    "label": "Ruby",
+    "description": "A dynamic, open-source programming language with a focus on simplicity and productivity."
+  },
+  {
+    "label": "Ruby on Rails",
+    "description": "A web application framework written in Ruby, emphasizing convention over configuration."
+  },
+  {
+    "label": "Scala",
+    "description": "A programming language that combines object-oriented and functional programming."
+  },
+  {
+    "label": "Go",
+    "description": "A statically typed, compiled programming language designed for simplicity and efficiency."
+  },
+  {
+    "label": "Rust",
+    "description": "A systems programming language focused on speed, memory safety, and parallelism."
+  },
+  {
+    "label": "Perl",
+    "description": "A high-level, general-purpose programming language known for its text processing capabilities."
+  },
+  {
+    "label": "C++",
+    "description": "An extension of the C programming language that includes object-oriented features."
+  },
+  {
+    "label": "Unity",
+    "description": "A cross-platform game engine for developing 2D and 3D video games."
+  },
+  {
+    "label": "Unreal Engine",
+    "description": "A powerful game engine for creating high-quality video games and simulations."
+  },
+  {
+    "label": "Game Development",
+    "description": "The process of designing and creating video games for various platforms."
+  },
+  {
+    "label": "AR/VR",
+    "description": "Technologies for creating immersive experiences through augmented and virtual reality."
+  },
+  {
+    "label": "IoT",
+    "description": "The interconnection of physical devices via the internet, allowing them to send and receive data."
+  },
+  {
+    "label": "Raspberry Pi",
+    "description": "A small, affordable computer used for learning programming and building digital projects."
+  },
+  {
+    "label": "Arduino",
+    "description": "An open-source electronics platform based on easy-to-use hardware and software."
+  },
+  {
+    "label": "Embedded Systems",
+    "description": "Computers integrated into other devices to perform dedicated functions."
+  },
+  {
+    "label": "Linux",
+    "description": "An open-source operating system based on the Linux kernel."
+  },
+  {
+    "label": "Windows",
+    "description": "A personal computer operating system developed by Microsoft."
+  },
+  {
+    "label": "MacOS",
+    "description": "The operating system designed for Apple's Mac computers."
+  },
+  {
+    "label": "Android",
+    "description": "An operating system for mobile devices developed by Google."
+  },
+  {
+    "label": "iOS",
+    "description": "Apple's mobile operating system for iPhone and iPad."
+  },
+  {
+    "label": "Cross-Platform Development",
+    "description": "Creating applications that work on multiple operating systems."
+  },
+  {
+    "label": "Software Testing",
+    "description": "The process of evaluating a software application to ensure it meets the required standards."
+  },
+  {
+    "label": "Quality Assurance",
+    "description": "The systematic process of ensuring the quality of software products."
+  },
+  {
+    "label": "DevOps",
+    "description": "A set of practices combining software development and IT operations to shorten the development lifecycle."
+  },
+  {
+    "label": "Agile Methodologies",
+    "description": "An iterative approach to software development that emphasizes flexibility and collaboration."
+  },
+  {
+    "label": "Scrum",
+    "description": "An Agile framework for managing complex software and product development."
+  },
+  {
+    "label": "Kanban",
+    "description": "A visual workflow management method for teams to visualize work, limit work-in-progress, and maximize efficiency."
+  },
+  {
+    "label": "Lean",
+    "description": "A methodology that focuses on minimizing waste within manufacturing systems."
+  },
+  {
+    "label": "Project Management",
+    "description": "The process of leading a team to achieve specific goals and meet specific success criteria."
+  },
+  {
+    "label": "Product Management",
+    "description": "The practice of strategically planning and developing products based on customer needs."
+  },
+  {
+    "label": "Business Analysis",
+    "description": "The practice of identifying business needs and finding technical solutions to business problems."
+  },
+  {
+    "label": "Technical Writing",
+    "description": "The process of writing technical documentation that conveys complex information clearly."
+  },
+  {
+    "label": "Copywriting",
+    "description": "The act of writing text for the purpose of advertising or marketing."
+  },
+  {
+    "label": "Content Marketing",
+    "description": "A marketing strategy focused on creating valuable content to attract and engage a target audience."
+  },
+  {
+    "label": "SEO",
+    "description": "Search Engine Optimization; the practice of optimizing websites to rank higher in search engine results."
+  },
+  {
+    "label": "SEM",
+    "description": "Search Engine Marketing; the practice of gaining traffic and visibility from search engines through paid advertising."
+  },
+  {
+    "label": "Digital Marketing",
+    "description": "The use of digital channels to promote products or services."
+  },
+  {
+    "label": "Social Media Marketing",
+    "description": "The use of social media platforms to promote products or services."
+  },
+  {
+    "label": "Email Marketing",
+    "description": "The practice of sending marketing messages to a group of people via email."
+  },
+  {
+    "label": "Salesforce",
+    "description": "A cloud-based software for customer relationship management (CRM)."
+  },
+  {
+    "label": "ERP",
+    "description": "Enterprise Resource Planning; a type of software used by organizations to manage business activities."
+  },
+  {
+    "label": "CRM",
+    "description": "Customer Relationship Management; strategies and technologies for managing interactions with customers."
+  },
+  {
+    "label": "Big Data",
+    "description": "Extremely large datasets that may be analyzed computationally to reveal patterns, trends, and associations."
+  },
+  {
+    "label": "Data Science",
+    "description": "The field that uses scientific methods, algorithms, and systems to extract insights from data."
+  },
+  {
+    "label": "Data Engineering",
+    "description": "The practice of designing and building systems for collecting, storing, and analyzing data."
+  },
+  {
+    "label": "Data Analytics",
+    "description": "The process of inspecting and interpreting data to draw conclusions."
+  },
+  {
+    "label": "Business Intelligence",
+    "description": "Technologies and strategies for data analysis and management in a business context."
+  },
+  {
+    "label": "Deep Learning",
+    "description": "A subset of machine learning based on neural networks with many layers."
+  },
+  {
+    "label": "Neural Networks",
+    "description": "Computational models inspired by the human brain, used in machine learning and AI."
+  },
+  {
+    "label": "Computer Vision",
+    "description": "A field of AI that enables computers to interpret and make decisions based on visual data."
+  },
+  {
+    "label": "Natural Language Processing",
+    "description": "A field of AI that focuses on the interaction between computers and humans through natural language."
+  },
+  {
+    "label": "Quantum Computing",
+    "description": "A type of computing that takes advantage of quantum phenomena to process information."
+  }
+]

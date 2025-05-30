@@ -1,0 +1,103 @@
+name: Dehix Fastify Backend CI/CD # Name of the workflow
+
+on:
+  push:
+    branches:
+      - develop # Trigger the workflow when changes are pushed to the 'develop' branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest # Use the latest Ubuntu environment for the runner
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up the Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.9 # Ensure compatibility with the Python build script
+
+      # Step 3: Set up the Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20 # Ensure compatibility with your backend
+
+      # Step 4: Install dependencies
+      - name: Install dependencies
+        run: npm ci # Use `npm ci` for faster, reliable builds (clean install)
+
+      # Step 5: Create the Firebase JSON file
+
+      # Install jq to format JSON correctly
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      # Decode Firebase credentials from base64 and write to a file
+      - name: Decode Firebase JSON secret
+        run: |
+          mkdir -p src/common/config
+          # Decode the base64 string from the secret and write to firebase-dev.json
+          echo "${{ secrets.FIREBASE_DEV_JSON }}" | base64 --decode | jq . > src/common/config/firebase-dev.json
+
+          # Check if the file was created successfully
+          if [ -f src/common/config/firebase-dev.json ]; then
+            echo "File created successfully"
+          else
+            echo "File creation failed!"
+            exit 1
+          fi
+        env:
+          FIREBASE_DEV_JSON: ${{ secrets.FIREBASE_DEV_JSON }}
+
+      # Step 6: Run the build script
+      - name: Run Python build script
+        run: python3 scripts/build.py # Builds, archives, and prepares the project for deployment
+
+      # Step 7: Configure AWS credentials
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }} # Access key for AWS
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }} # Secret key for AWS
+          aws-region: ${{ secrets.AWS_REGION }} # AWS region (e.g., us-east-1)
+
+      # Step 8: Upload the build to an S3 bucket and deploy to Elastic Beanstalk
+      - name: Deploy to AWS Elastic Beanstalk
+        env:
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          # Set S3 bucket and path details
+          BUCKET_NAME="beanstalk-fastify-builds"
+          APP_FOLDER="fastify"
+          BUILD_FILE=$(basename dist/*.zip)
+
+          # Upload the build to S3
+          echo "Uploading build to S3 bucket: $BUCKET_NAME/$APP_FOLDER/"
+          aws s3 cp dist/$BUILD_FILE s3://$BUCKET_NAME/$APP_FOLDER/$BUILD_FILE
+
+          # Create a new application version in Elastic Beanstalk
+          VERSION_LABEL="build-${{ github.run_id }}"
+          echo "Creating new application version: $VERSION_LABEL"
+          aws elasticbeanstalk create-application-version \
+            --application-name dehix \
+            --version-label $VERSION_LABEL \
+            --source-bundle S3Bucket="$BUCKET_NAME",S3Key="$APP_FOLDER/$BUILD_FILE"
+
+          # Update the Beanstalk environment
+          echo "Updating Elastic Beanstalk environment..."
+          aws elasticbeanstalk update-environment \
+            --application-name dehix \
+            --environment-name Dehix-dev-env \
+            --version-label $VERSION_LABEL
+
+      # Step 9: Cleanup (Remove sensitive files)
+      - name: Cleanup
+        run: |
+          echo "Cleaning up temporary files..."
+          rm -rf dist src/common/config/firebase-dev.json

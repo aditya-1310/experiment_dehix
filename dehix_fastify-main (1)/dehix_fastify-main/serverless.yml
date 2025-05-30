@@ -1,0 +1,75 @@
+service: api-fastify-test
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: ${opt:region, 'ap-south-1'}
+  role: LambdaServiceRole
+  versionFunctions: false
+  timeout: 29
+  stage: ${opt:stage}
+  logRetentionInDays: 1
+  deploymentBucket:
+    name: products-deployments
+  vpc:
+    securityGroupIds:
+      - sg-00a7e063a51760a4c
+    subnetIds:
+      - "subnet-052466bf39d865cbc"
+      - "subnet-06a068ba4e842ac48"
+  httpApi:
+    # authorizers:
+    #   firebaseJwtAuthorizer:
+    #     identitySource: $request.header.Authorization
+    #     issuerUrl: ${file(../env/${self:provider.stage}.json):OPENID_URL}
+    #     audience:
+    #       - ${file(../env/${self:provider.stage}.json):OPENID_AUD}
+    cors:
+      allowedOrigins: "*"
+      allowedHeaders:
+        - Content-Type
+        - X-Amz-Date
+        - Authorization
+        - X-Api-Key
+        - X-Amz-Security-Token
+        - X-Amz-User-Agent
+        - cache-control
+        - client
+
+  environment:
+    STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "lambda:*"
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - "s3:*"
+      Resource: "*"
+
+functions:
+  handleAPI:
+    handler: dist/lambda.handler
+    events:
+      - httpApi:
+          path: /{proxy+}
+          method: any
+          # authorizer:
+          #   name: firebaseJwtAuthorizer
+    environment:
+      NODE_OPTIONS: --experimental-specifier-resolution=node
+    package:
+      individually: true
+      exclude:
+        - "./src/**"
+        - "./tsconfig.json"
+        - "./resources/**"
+        - "./Readme.md"
+        - "./lambda.ts"
+        - "./package-lock.json"
+
+resources:
+  - ${file(resources/roles.yml)}
