@@ -145,7 +145,9 @@ const HomePage = () => {
   }
 
 
+  // Manually re-typed return statement and component closing
   return (
+
     <div className="flex min-h-screen w-full flex-col bg-[hsl(var(--muted)_/_0.4)]">
       <SidebarMenu
         menuItemsTop={
@@ -187,9 +189,11 @@ const HomePage = () => {
             chatWindowComponent={chatWindowComponentContent} {/* Pass the content (could be shell or actual CardsChat) */}
           />
         </main>
-      </div>
-    </div>
+   
   );
 };
 
 export default HomePage;
+
+// The original commented out code is removed below for clarity of this specific change.
+// If this fix works, the next step would be to restore the original return block piece by piece.
