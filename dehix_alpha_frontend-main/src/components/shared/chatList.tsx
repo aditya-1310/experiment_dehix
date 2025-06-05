@@ -266,7 +266,7 @@ export function ChatList({
                     <div
                       key={foundUser.uid}
                       className="p-2 hover:bg-[hsl(var(--accent))] cursor-pointer text-sm text-[hsl(var(--foreground))]"
-                      onClick={() => handleSelectUser(foundUser)}
+                      onClick={(e) => { e.stopPropagation(); handleSelectUser(foundUser); }}
                     >
                       {foundUser.userName} <span className="text-xs text-[hsl(var(--muted-foreground))]">({foundUser.email})</span>
                     </div>
