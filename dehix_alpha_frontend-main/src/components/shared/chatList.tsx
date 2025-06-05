@@ -360,8 +360,32 @@ export function ChatList({
                   try {
                     const docRef = await addDoc(collection(db, 'conversations'), newGroupConversation);
                     console.log("Group conversation created with ID: ", docRef.id);
+
+                    // Construct the newly created conversation object for state update
+                    const newlyCreatedConversationForState: Conversation = {
+                      id: docRef.id,
+                      participants: participantUIDs,
+                      project_name: groupName.trim(),
+                      type: 'group', // As defined in newGroupConversation
+                      timestamp: now, // Represents updatedAt
+                      lastMessage: newGroupConversation.lastMessage,
+                      // Include other fields from newGroupConversation if they are part of Conversation or DocumentData allows them
+                      // and they are useful for the immediate UI update.
+                      labels: [], // Assuming optional or default to empty
+                      createdAt: now, // From newGroupConversation
+                      createdBy: currentUserUID, // From newGroupConversation
+                      admins: [currentUserUID], // From newGroupConversation
+                    };
+
+                    // Update the active conversation state
+                    setConversation(newlyCreatedConversationForState);
+
                     toast({ title: "Success", description: "Group chat created successfully." });
                     setGroupName('');
+                    // Reset other fields related to the dialog if needed
+                    setSelectedUsers([]);
+                    setUserSearchTerm('');
+                    setSearchResults([]);
                     setShowCreateGroupDialog(false);
                   } catch (error) {
                     console.error("Error creating group conversation: ", error);
