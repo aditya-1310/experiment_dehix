@@ -12,8 +12,11 @@ import { RootState } from '@/lib/store'; // Added
 import { getFirestore, addDoc, collection, doc, getDoc } from 'firebase/firestore';
 import { db } from '@/config/firebaseConfig';
 import { toast } from '@/hooks/use-toast';
-import { NewChatDialog } from './NewChatDialog'; // User as NewChatUser removed, CombinedUser will be inferred
-import type { CombinedUser as NewChatUser } from '@/hooks/useAllUsers'; // Import CombinedUser for type hint
+// NewChatDialog import seems fine, NewChatUser is already CombinedUser
+// import { NewChatDialog } from './NewChatDialog';
+import { useAllUsers, type CombinedUser } from '@/hooks/useAllUsers'; // Import useAllUsers and CombinedUser
+import type { CombinedUser as NewChatUser } from '@/hooks/useAllUsers'; // Keep this for NewChatDialog prop consistency if needed elsewhere
+
 // ProfileSidebar is no longer imported or rendered here
 import {
   DropdownMenu,
@@ -81,24 +84,17 @@ export function ChatList({
   const [groupName, setGroupName] = useState('');
   const [groupDescription, setGroupDescription] = useState(''); // State for group description
   const user = useSelector((state: RootState) => state.user);
+  const { users: allFetchedUsers, isLoading: isLoadingUsers, error: usersError } = useAllUsers();
+
 
   // Removed local ProfileSidebar state:
   // const [isProfileSidebarOpen, setIsProfileSidebarOpen] = useState(false);
   // const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   // const [selectedProfileType, setSelectedProfileType] = useState<'user' | 'group' | null>(null);
 
-  // Mock Users (replace with actual data source/API call in a real app)
-  const MOCK_USERS = [
-    { uid: 'user1_uid_alice', userName: 'Alice Wonderland', email: 'alice@example.com' },
-    { uid: 'user2_uid_bob', userName: 'Bob The Builder', email: 'bob@example.com' },
-    { uid: 'user3_uid_charlie', userName: 'Charlie Brown', email: 'charlie@example.com' },
-    { uid: 'user4_uid_diana', userName: 'Diana Prince', email: 'diana@example.com' },
-    { uid: 'user5_uid_edward', userName: 'Edward Scissorhands', email: 'edward@example.com' },
-  ];
-
   const [userSearchTerm, setUserSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState<typeof MOCK_USERS>([]);
-  const [selectedUsers, setSelectedUsers] = useState<typeof MOCK_USERS>([]);
+  const [searchResults, setSearchResults] = useState<CombinedUser[]>([]);
+  const [selectedUsers, setSelectedUsers] = useState<CombinedUser[]>([]);
 
   const handleProfileIconClick = (e: React.MouseEvent, conv: Conversation) => {
     e.stopPropagation(); // Prevent triggering setConversation if this is nested
@@ -118,28 +114,30 @@ export function ChatList({
 
   const handleUserSearch = (term: string) => {
     setUserSearchTerm(term);
-    if (term.trim() === '') {
+    if (term.trim() === '' || isLoadingUsers || !allFetchedUsers) {
       setSearchResults([]);
       return;
     }
-    const filtered = MOCK_USERS.filter(
-      (mockUser) =>
-        (mockUser.userName.toLowerCase().includes(term.toLowerCase()) ||
-          mockUser.email.toLowerCase().includes(term.toLowerCase())) &&
-        !selectedUsers.find((su) => su.uid === mockUser.uid) && // Not already selected
-        mockUser.uid !== user.uid // Not the current user
+    const filtered = allFetchedUsers.filter(
+      (fetchedUser) =>
+        fetchedUser.id !== user.uid && // Not the current user
+        !selectedUsers.find((su) => su.id === fetchedUser.id) && // Not already selected
+        (fetchedUser.displayName.toLowerCase().includes(term.toLowerCase()) ||
+         (fetchedUser.email && fetchedUser.email.toLowerCase().includes(term.toLowerCase())) || // Check if email exists
+         (fetchedUser.rawUserName && fetchedUser.rawUserName.toLowerCase().includes(term.toLowerCase())) ||
+         (fetchedUser.rawName && fetchedUser.rawName.toLowerCase().includes(term.toLowerCase())))
     );
     setSearchResults(filtered);
   };
 
-  const handleSelectUser = (userToAdd: typeof MOCK_USERS[0]) => {
+  const handleSelectUser = (userToAdd: CombinedUser) => {
     setSelectedUsers((prev) => [...prev, userToAdd]);
     setUserSearchTerm('');
     setSearchResults([]);
   };
 
-  const handleRemoveSelectedUser = (uidToRemove: string) => {
-    setSelectedUsers((prev) => prev.filter((su) => su.uid !== uidToRemove));
+  const handleRemoveSelectedUser = (idToRemove: string) => {
+    setSelectedUsers((prev) => prev.filter((su) => su.id !== idToRemove));
   };
 
 
@@ -394,23 +392,29 @@ export function ChatList({
                 </Label>
                 <Input
                   id="addPeople"
-                  placeholder="Search by name or email"
+                  placeholder={isLoadingUsers ? "Loading users..." : "Search by name or email"}
                   className="col-span-3 bg-[hsl(var(--input))] text-[hsl(var(--foreground))] placeholder:text-[hsl(var(--muted-foreground))] focus:ring-[hsl(var(--ring))]"
                   value={userSearchTerm}
                   onChange={(e) => handleUserSearch(e.target.value)}
+                  disabled={isLoadingUsers || !!usersError}
                 />
               </div>
+              {usersError && (
+                <div className="col-start-2 col-span-3 text-xs text-red-500">
+                  Error loading users: {usersError.message}
+                </div>
+              )}
 
               {/* Search Results */}
-              {userSearchTerm && searchResults.length > 0 && (
+              {userSearchTerm && searchResults.length > 0 && !isLoadingUsers && !usersError && (
                 <div className="col-start-2 col-span-3 mt-2 max-h-32 overflow-y-auto border border-[hsl(var(--border))] rounded-md bg-[hsl(var(--background))]"> {/* Changed mt-1 to mt-2 */}
                   {searchResults.map(foundUser => (
                     <div
-                      key={foundUser.uid}
+                      key={foundUser.id}
                       className="p-2 hover:bg-[hsl(var(--accent))] cursor-pointer text-sm text-[hsl(var(--foreground))]"
                       onClick={() => handleSelectUser(foundUser)}
                     >
-                      {foundUser.userName} <span className="text-xs text-[hsl(var(--muted-foreground))]">({foundUser.email})</span>
+                      {foundUser.displayName} <span className="text-xs text-[hsl(var(--muted-foreground))]">({foundUser.email || 'No email'})</span>
                     </div>
                   ))}
                 </div>
@@ -423,15 +427,15 @@ export function ChatList({
                   <div className="flex flex-wrap gap-1.5">
                     {selectedUsers.map(selected => (
                       <span
-                        key={selected.uid}
+                        key={selected.id}
                         className="flex items-center bg-[hsl(var(--primary)_/_0.2)] text-[hsl(var(--primary))] text-xs font-medium px-2.5 py-1 rounded-full"
                       >
-                        {selected.userName}
+                        {selected.displayName}
                         <button
                           type="button"
-                          onClick={() => handleRemoveSelectedUser(selected.uid)}
+                          onClick={() => handleRemoveSelectedUser(selected.id)}
                           className="ml-1.5 text-[hsl(var(--primary)_/_0.7)] hover:text-[hsl(var(--primary))]"
-                          aria-label={`Remove ${selected.userName}`}
+                          aria-label={`Remove ${selected.displayName}`}
                         >
                           <LucideX className="h-3.5 w-3.5" />
                         </button>
@@ -475,7 +479,7 @@ export function ChatList({
                   }
 
                   const currentUserUID = user.uid;
-                  const participantUIDs = Array.from(new Set([currentUserUID, ...selectedUsers.map(su => su.uid)]));
+                  const participantUIDs = Array.from(new Set([currentUserUID, ...selectedUsers.map(su => su.id)]));
 
                   if (participantUIDs.length < 2) {
                      toast({ variant: "destructive", title: "Error", description: "A group must have at least two distinct members." });
