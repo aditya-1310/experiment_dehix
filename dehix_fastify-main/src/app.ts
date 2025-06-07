@@ -16,6 +16,7 @@ const schema = {
   patternProperties: {
     "SERVER_(.*)": { type: "string" },
   },
+  
   // add key properties for specific property validation
 };
 
