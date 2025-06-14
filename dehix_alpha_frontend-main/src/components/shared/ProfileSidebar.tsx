@@ -494,6 +494,16 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onClose, profil
     profileData &&
     user?.mutedGroups?.includes((profileData as ProfileGroup).id);
 
+  let avatarSrc = '';
+  if (profileData) {
+    if (profileType === 'user') {
+      avatarSrc = (profileData as ProfileUser).profilePic || '';
+    } else if (profileType === 'group') {
+      const groupData = profileData as ProfileGroup;
+      avatarSrc = groupData.participantDetails?.[groupData.id]?.profilePic || `https://api.adorable.io/avatars/285/group-${groupData.id}.png`;
+    }
+  }
+
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent
@@ -526,7 +536,7 @@ const ProfileSidebar: React.FC<ProfileSidebarProps> = ({ isOpen, onClose, profil
                 <div className="flex flex-col items-center space-y-2 pt-4">
                   <Avatar className="w-24 h-24 border-2 border-[hsl(var(--border))]">
                     <AvatarImage
-                      src={profileType === 'user' ? (profileData as ProfileUser).profilePic : (profileData as ProfileGroup).avatar}
+                      src={avatarSrc}
                       alt={profileData.displayName}
                     />
                     <AvatarFallback className="text-3xl">{getFallbackName(profileData)}</AvatarFallback>
