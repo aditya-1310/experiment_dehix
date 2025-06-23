@@ -427,7 +427,6 @@ export class FreelancerDAO extends BaseDAO {
     return this.model.findByIdAndUpdate(id, { interviewee: update });
   }
 
-
   async getAllDehixInteviewers() {
     return await this.model.find({
       dehixInterviewer: { $exists: true, $ne: null },

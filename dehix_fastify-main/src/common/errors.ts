@@ -13,6 +13,21 @@ export class BadTokenError extends Error {
   }
 }
 
+// Generic Application Error
+export class AppError extends Error {
+  public details?: any;
+  constructor(
+    public message: string,
+    public statusCode: number,
+    details?: any,
+  ) {
+    super(message);
+    this.name = this.constructor.name;
+    this.details = details;
+    Error.captureStackTrace(this, this.constructor); // Maintains proper stack trace
+  }
+}
+
 // Represents an error indicating that a user is unauthorized to perform a specific action.
 export class UnAuthorisedError extends Error {
   constructor(

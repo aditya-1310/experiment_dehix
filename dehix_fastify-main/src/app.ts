@@ -7,16 +7,26 @@ import swagger from "@fastify/swagger";
 import swagger_ui from "@fastify/swagger-ui";
 import { logger } from "./common/services/logger.service";
 import fs from "fs";
+import path from "path"; // Added path
 import fastifyMultipart from "fastify-multipart";
+import fastifyStatic from "@fastify/static"; // Added fastify-static
 
 // Env schema
 const schema = {
   type: "object",
-  required: [],
-  patternProperties: {
-    "SERVER_(.*)": { type: "string" },
+  required: ["SERVER_MONGO_CONN", "SERVER_PORT"], // Example, ensure these are actually required
+  properties: {
+    SERVER_MONGO_CONN: { type: "string" },
+    SERVER_PORT: { type: "number" },
+    GOOGLE_APPLICATION_CREDENTIALS: { type: "string" }, // For Firebase Admin
+    FIREBASE_PROJECT_ID: { type: "string" }, // For Firebase Admin
+    BACKEND_PUBLIC_URL: { type: "string" }, // For constructing full file URLs
+    // Add other SERVER_ prefixed vars if they are fixed and known
   },
-  
+  patternProperties: {
+    "SERVER_(.*)": { type: "string" }, // Ensure this is active for other SERVER_ variables
+  },
+
   // add key properties for specific property validation
 };
 
@@ -40,6 +50,17 @@ export const configure = async () => {
   await app.after();
 
   app
+    .register(fastifyStatic, {
+      // Added for serving uploaded files
+      root: path.join(__dirname, "..", "uploads"), // Path to the uploads folder
+      prefix: "/uploads/", // Optional: prefix for the URL
+      decorateReply: true, // Decorate reply with `sendFile` and `download`
+      setHeaders: (res, _pathName, _stat) => {
+        // Prefixed unused parameters
+        // Optional: set custom headers
+        res.setHeader("Access-Control-Allow-Origin", "*");
+      },
+    })
     .register(fastifyMultipart, {
       limits: {
         fieldNameSize: 100, // Max field name size in bytes
@@ -51,11 +72,11 @@ export const configure = async () => {
       },
       attachFieldsToBody: true,
       onFile: (part) => {
-        console.log('Processing file:', {
+        console.log("Processing file:", {
           filename: part.filename,
           encoding: part.encoding,
           mimetype: part.mimetype,
-          fieldname: part.fieldname
+          fieldname: part.fieldname,
         });
       },
       throwFileSizeLimit: true,

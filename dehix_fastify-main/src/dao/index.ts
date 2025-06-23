@@ -9,3 +9,4 @@ export * from "./skills.dao";
 export * from "./ads.dao";
 export * from "./projectDomain.dao";
 export * from "./userNotification.dao";
+export * from "./voiceMessage.dao";
