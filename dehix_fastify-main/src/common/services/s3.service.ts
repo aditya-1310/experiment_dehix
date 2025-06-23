@@ -21,7 +21,7 @@ const s3 = new S3({
     secretAccessKey, // Your AWS secret access key
   },
   maxAttempts: 3, // Number of retries for failed requests
-  requestTimeout: 25000, // 25 seconds timeout for individual requests
+  // requestTimeout: 25000, // 25 seconds timeout for individual requests - Property does not exist on S3ClientConfig
 });
 
 // Interface defining the structure for upload parameters
@@ -109,29 +109,32 @@ export const handleFileUpload = async (
       bucketName,
       hasFile: !!file,
       fileType: file?.mimetype,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
     // Convert the file stream into a buffer
     const chunks: Buffer[] = [];
     let totalSize = 0;
-    
+
     for await (const chunk of file) {
       chunks.push(chunk);
       totalSize += chunk.length;
-      
+
       // Log progress for large files
-      if (totalSize > 1024 * 1024) { // Log every MB
-        console.log(`File upload progress: ${Math.round(totalSize / (1024 * 1024))}MB processed`);
+      if (totalSize > 1024 * 1024) {
+        // Log every MB
+        console.log(
+          `File upload progress: ${Math.round(totalSize / (1024 * 1024))}MB processed`,
+        );
       }
     }
-    
+
     let fileBuffer = Buffer.concat(chunks);
 
     console.log("File buffer created:", {
       bufferSize: fileBuffer.length,
       fileExt,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
     // Perform processing based on the file extension
@@ -142,12 +145,12 @@ export const handleFileUpload = async (
     }
 
     const fileKey = `${Date.now()}-${filename}`;
-    console.log("Uploading to S3:", { 
-      bucketName, 
-      fileKey, 
+    console.log("Uploading to S3:", {
+      bucketName,
+      fileKey,
       contentType: file.mimetype,
       fileSize: fileBuffer.length,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
     // Upload the processed file to S3 and return the URL
@@ -162,17 +165,17 @@ export const handleFileUpload = async (
       location: result.Location,
       key: result.Key,
       bucket: result.Bucket,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
 
     return result;
   } catch (error) {
     console.error("Error in handleFileUpload:", {
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? error.message : "Unknown error",
       stack: error instanceof Error ? error.stack : undefined,
       filename,
       fileType: file?.mimetype,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     });
     throw error;
   }

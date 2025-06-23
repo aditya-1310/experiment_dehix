@@ -10,3 +10,4 @@ export * from "./ads.service";
 export * from "./projectDomain.service";
 export * from "./admin.service";
 export * from "./userNotification.service";
+export * from "./voiceMessage.service";

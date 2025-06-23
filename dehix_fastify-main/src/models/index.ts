@@ -12,6 +12,7 @@ import { VerificationModel, IVerification } from "./verifications.entity";
 import { AdminModel, IAdmin } from "./admin.entity";
 import { AdsModel, IAds } from "./ads.entity";
 import { ProjectDomainModel, IProjectDomain } from "./projectDomain.entity";
+import VoiceMessageModel, { IVoiceMessage } from "./voiceMessage.model";
 
 export interface DBModels {
   FreelancerModel?: Model<IFreelancer>;
@@ -27,6 +28,7 @@ export interface DBModels {
   AdminModel?: Model<IAdmin>;
   AdsModel?: Model<IAds>;
   ProjectDomainModel?: Model<IProjectDomain>;
+  VoiceMessageModel?: Model<IVoiceMessage>;
 }
 
 const models: DBModels = {
@@ -43,6 +45,7 @@ const models: DBModels = {
   AdminModel,
   AdsModel,
   ProjectDomainModel,
+  VoiceMessageModel,
 };
 
 export default models;
