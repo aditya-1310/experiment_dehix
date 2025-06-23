@@ -136,44 +136,91 @@ export default class RegisterController extends BaseController {
   @POST("/upload-image")
   async uploadImage(request: FastifyRequest, reply: FastifyReply) {
     try {
-      // Ensure multipart parsing is set up correctly
-      const parts = await request.file(); // Use request.file() to handle single file
-      if (!parts) {
-        throw new Error("Multipart parsing is not set up correctly.");
+      this.logger.info("Received request to /upload-image");
+
+      let parts;
+      try {
+        this.logger.info("Attempting to get file parts using request.file()");
+        parts = await request.file();
+        this.logger.info("Successfully got file parts. Processing file.");
+        
+        if (parts) {
+          this.logger.info(`Parts received: fieldname='${parts.fieldname}', filename='${parts.filename}', mimetype='${parts.mimetype}'`);
+        } else {
+          this.logger.warn("request.file() returned no parts (it was null or undefined).");
+          return reply.status(STATUS_CODES.BAD_REQUEST).send({
+            message: "No file uploaded or multipart parsing issue",
+            code: ERROR_CODES.BAD_REQUEST_ERROR,
+          });
+        }
+      } catch (err: any) {
+        this.logger.error("Error during request.file() execution:", {
+          error: err.message,
+          stack: err.stack,
+          timestamp: new Date().toISOString()
+        });
+        return reply.status(STATUS_CODES.SERVER_ERROR).send({
+          message: "Error processing file stream",
+          code: ERROR_CODES.SERVER_ERROR,
+          errorDetail: err.message
+        });
       }
 
-      // Extract file information
       const { file, filename, encoding, mimetype } = parts;
-      console.log("File:", { filename, encoding, mimetype });
+      this.logger.info(`Extracted file info: filename='${filename}', encoding='${encoding}', mimetype='${mimetype}'`);
 
-      // Handle file upload
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
+      if (!allowedTypes.includes(mimetype)) {
+        this.logger.warn(`Invalid file type received: ${mimetype}`);
+        return reply.status(STATUS_CODES.BAD_REQUEST).send({
+          message: "Invalid file type. Allowed types: " + allowedTypes.join(', '),
+          code: ERROR_CODES.BAD_REQUEST_ERROR,
+        });
+      }
+
       try {
-        const uploadResult = await handleFileUpload(
-          file,
-          filename.replaceAll(" ", ""),
-        ); // Your function to upload to S3
-        console.log("uploaded result", uploadResult);
+        this.logger.info(`Starting file upload for ${filename}`);
+        const uploadResult = await handleFileUpload(file, filename.replaceAll(" ", ""));
+        this.logger.info(`File upload completed successfully: ${JSON.stringify(uploadResult)}`);
 
-        // Respond once all files are processed
         return reply.status(STATUS_CODES.SUCCESS).send({
           message: "File uploaded successfully",
           data: uploadResult,
         });
-      } catch (uploadError) {
-        console.error("Upload error:", uploadError);
+      } catch (uploadError: any) {
+        this.logger.error(`Error during file upload for ${filename}:`, {
+          error: uploadError.message,
+          stack: uploadError.stack,
+          timestamp: new Date().toISOString()
+        });
+
+        // Check for specific error types
+        if (uploadError.message.includes('AWS')) {
+          return reply.status(STATUS_CODES.SERVER_ERROR).send({
+            message: "Error connecting to storage service. Please try again.",
+            code: ERROR_CODES.SERVER_ERROR,
+            errorDetail: uploadError.message
+          });
+        }
+
         return reply.status(STATUS_CODES.SERVER_ERROR).send({
-          message: "Error uploading file",
+          message: "Error uploading file. Please try again.",
           code: ERROR_CODES.SERVER_ERROR,
+          errorDetail: uploadError.message
         });
       }
     } catch (error: any) {
-      this.logger.error(
-        "Error in controller uploading image to S3",
-        error.message,
-      );
+      this.logger.error("Unhandled error in uploadImage controller:", {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString()
+      });
+      
       return reply.status(STATUS_CODES.SERVER_ERROR).send({
         message: RESPONSE_MESSAGE.SERVER_ERROR,
         code: ERROR_CODES.SERVER_ERROR,
+        errorDetail: error.message
       });
     }
   }

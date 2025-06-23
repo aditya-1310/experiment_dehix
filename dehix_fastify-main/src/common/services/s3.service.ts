@@ -20,6 +20,8 @@ const s3 = new S3({
     accessKeyId, // Your AWS access key ID
     secretAccessKey, // Your AWS secret access key
   },
+  maxAttempts: 3, // Number of retries for failed requests
+  requestTimeout: 25000, // 25 seconds timeout for individual requests
 });
 
 // Interface defining the structure for upload parameters
@@ -88,40 +90,90 @@ const processPdf = async (buffer: Buffer): Promise<Buffer> => {
  * @returns {Promise<{Location: string; Key: string; Bucket: string}>} - An object containing the file URL and metadata.
  */
 export const handleFileUpload = async (
-  file: any, // The file stream received from the upload
-  filename: string, // The original name of the uploaded file
+  file: any,
+  filename: string,
 ): Promise<{ Location: string; Key: string; Bucket: string }> => {
-  const bucketName = process.env.S3_BUCKET_NAME; // Retrieve the bucket name from environment variables
-  const fileExt = path.extname(filename).toLowerCase(); // Get the file extension
+  try {
+    const bucketName = process.env.S3_BUCKET_NAME;
+    const fileExt = path.extname(filename).toLowerCase();
 
-  if (!bucketName) {
-    throw new Error(
-      "S3 bucket name is not set. Please check your environment variables.",
-    );
+    if (!bucketName) {
+      throw new Error(
+        "S3 bucket name is not set. Please check your environment variables.",
+      );
+    }
+
+    console.log("Starting file upload process:", {
+      filename,
+      fileExt,
+      bucketName,
+      hasFile: !!file,
+      fileType: file?.mimetype,
+      timestamp: new Date().toISOString()
+    });
+
+    // Convert the file stream into a buffer
+    const chunks: Buffer[] = [];
+    let totalSize = 0;
+    
+    for await (const chunk of file) {
+      chunks.push(chunk);
+      totalSize += chunk.length;
+      
+      // Log progress for large files
+      if (totalSize > 1024 * 1024) { // Log every MB
+        console.log(`File upload progress: ${Math.round(totalSize / (1024 * 1024))}MB processed`);
+      }
+    }
+    
+    let fileBuffer = Buffer.concat(chunks);
+
+    console.log("File buffer created:", {
+      bufferSize: fileBuffer.length,
+      fileExt,
+      timestamp: new Date().toISOString()
+    });
+
+    // Perform processing based on the file extension
+    if (fileExt === ".jpg" || fileExt === ".jpeg" || fileExt === ".png") {
+      fileBuffer = await processImage(fileBuffer);
+    } else if (fileExt === ".pdf") {
+      fileBuffer = await processPdf(fileBuffer);
+    }
+
+    const fileKey = `${Date.now()}-${filename}`;
+    console.log("Uploading to S3:", { 
+      bucketName, 
+      fileKey, 
+      contentType: file.mimetype,
+      fileSize: fileBuffer.length,
+      timestamp: new Date().toISOString()
+    });
+
+    // Upload the processed file to S3 and return the URL
+    const result = await uploadFileToS3({
+      bucketName,
+      fileKey,
+      fileBuffer,
+      contentType: file.mimetype,
+    });
+
+    console.log("File upload completed:", {
+      location: result.Location,
+      key: result.Key,
+      bucket: result.Bucket,
+      timestamp: new Date().toISOString()
+    });
+
+    return result;
+  } catch (error) {
+    console.error("Error in handleFileUpload:", {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      filename,
+      fileType: file?.mimetype,
+      timestamp: new Date().toISOString()
+    });
+    throw error;
   }
-
-  // Convert the file stream into a buffer
-  const chunks: Buffer[] = []; // Array to hold chunks of file data
-  for await (const chunk of file) {
-    chunks.push(chunk); // Push each chunk into the array
-  }
-  let fileBuffer = Buffer.concat(chunks); // Concatenate chunks into a single buffer
-
-  // Perform processing based on the file extension
-  if (fileExt === ".jpg" || fileExt === ".jpeg" || fileExt === ".png") {
-    fileBuffer = await processImage(fileBuffer); // Process images
-  } else if (fileExt === ".pdf") {
-    fileBuffer = await processPdf(fileBuffer); // Process PDFs
-  }
-
-  const fileKey = `${Date.now()}-${filename}`; // Create a unique file key using timestamp
-  console.log("Uploading to S3:", bucketName, fileKey); // Log upload information
-
-  // Upload the processed file to S3 and return the URL
-  return await uploadFileToS3({
-    bucketName, // The name of the bucket
-    fileKey, // The key under which to store the file
-    fileBuffer, // The buffer containing the file data
-    contentType: file.mimetype, // The MIME type of the file
-  });
 };

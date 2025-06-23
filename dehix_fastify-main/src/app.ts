@@ -40,7 +40,26 @@ export const configure = async () => {
   await app.after();
 
   app
-    .register(fastifyMultipart)
+    .register(fastifyMultipart, {
+      limits: {
+        fieldNameSize: 100, // Max field name size in bytes
+        fieldSize: 100, // Max field value size in bytes
+        fields: 10, // Max number of non-file fields
+        fileSize: 10 * 1024 * 1024, // Max file size in bytes (10MB)
+        files: 1, // Max number of file fields
+        headerPairs: 2000, // Max number of header key=>value pairs
+      },
+      attachFieldsToBody: true,
+      onFile: (part) => {
+        console.log('Processing file:', {
+          filename: part.filename,
+          encoding: part.encoding,
+          mimetype: part.mimetype,
+          fieldname: part.fieldname
+        });
+      },
+      throwFileSizeLimit: true,
+    })
     .register(swagger, {
       mode: "dynamic",
       swagger: {
