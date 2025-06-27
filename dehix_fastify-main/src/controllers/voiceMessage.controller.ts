@@ -34,7 +34,7 @@ interface GetVoiceMessagesRequest extends FastifyRequest {
 }
 
 @Controller({ route: "/v1/voice-messages" })
-export class VoiceMessageController {
+export default class VoiceMessageController {
   @Inject(VoiceMessageService)
   private voiceMessageService!: VoiceMessageService;
 

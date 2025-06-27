@@ -2,8 +2,13 @@ import { Service, Inject, FastifyInstanceToken } from "fastify-decorators"; // A
 import { FastifyInstance } from "fastify";
 import * as fs from "fs/promises";
 import * as path from "path";
+import { fileURLToPath } from 'url';
 import { AppError } from "../errors"; // Assuming AppError exists
 import { logger } from "./logger.service"; // Assuming logger service
+
+// In ESM (__dirname is undefined). Reconstruct it:
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 @Service()
 export class FileStorageService {
@@ -11,13 +16,7 @@ export class FileStorageService {
   @Inject(FastifyInstanceToken) // Inject Fastify instance to access config
   private instance!: FastifyInstance;
 
-  private localUploadsBaseDir = path.join(
-    __dirname,
-    "..",
-    "..",
-    "..",
-    "uploads",
-  ); // Root of repo/uploads
+  private localUploadsBaseDir = path.resolve(__dirname, '../../../uploads'); // Root of repo/uploads
   private publicPathPrefix = "/uploads"; // The prefix used by fastify-static
 
   constructor() {

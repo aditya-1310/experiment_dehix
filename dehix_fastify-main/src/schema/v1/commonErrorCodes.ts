@@ -23,6 +23,14 @@ export const commonErrorResponses = {
       code: { type: "string" },
     },
   },
+  400: {
+    description: "Bad Request",
+    type: "object",
+    properties: {
+      error: { type: "string" },
+      details: { type: "string", nullable: true },
+    },
+  },
   500: {
     description: "Internal Server Error",
     type: "object",
