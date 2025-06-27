@@ -8,29 +8,28 @@ export namespace FirebaseClient {
 
   export async function init(fastify: FastifyInstance): Promise<void> {
     try {
-      const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-      const firebaseProjectId = process.env.FIREBASE_PROJECT_ID; // Good to have for verification or specific config
+      const serviceAccountPath = fastify.config.GOOGLE_APPLICATION_CREDENTIALS;
+      const firebaseProjectId = fastify.config.FIREBASE_PROJECT_ID;
 
       if (!serviceAccountPath) {
-        logger.warn(
-          "GOOGLE_APPLICATION_CREDENTIALS environment variable is not set. Firebase Admin SDK will not be initialized.",
-        );
-        logger.warn(
-          "Firestore functionality in the backend (e.g., writing voice messages to chat) will be disabled.",
-        );
+        logger.warn("GOOGLE_APPLICATION_CREDENTIALS environment variable is not set. Firebase functionality will be disabled.");
         return;
       }
+
       if (!firebaseProjectId) {
-        logger.warn("FIREBASE_PROJECT_ID environment variable is not set.");
+        logger.warn("FIREBASE_PROJECT_ID environment variable is not set. Using default project from credentials.");
       }
 
-      // Check if already initialized to prevent re-initialization errors
       if (admin.apps.length === 0) {
-        admin.initializeApp({
-          credential: admin.credential.applicationDefault(), // Uses GOOGLE_APPLICATION_CREDENTIALS
-          // databaseURL: `https://${firebaseProjectId}.firebaseio.com` // Optional: if using Realtime Database
-          // storageBucket: `${firebaseProjectId}.appspot.com` // Optional: if using Firebase Storage via Admin SDK
-        });
+        const config: admin.AppOptions = {
+          credential: admin.credential.applicationDefault(),
+        };
+        
+        if (firebaseProjectId) {
+          config.projectId = firebaseProjectId;
+        }
+
+        admin.initializeApp(config);
         logger.info("Firebase Admin SDK initialized successfully.");
       } else {
         logger.info("Firebase Admin SDK already initialized.");
@@ -41,21 +40,20 @@ export namespace FirebaseClient {
       logger.info("Firestore instance decorated to Fastify.");
     } catch (error) {
       logger.error("Failed to initialize Firebase Admin SDK:", error);
-      // Depending on requirements, you might want to throw this error
-      // to prevent the application from starting if Firebase is critical.
+      if (error instanceof Error && error.message.includes('GOOGLE_APPLICATION_CREDENTIALS')) {
+        logger.error("Please ensure GOOGLE_APPLICATION_CREDENTIALS points to a valid service account key file.");
+      }
+      // Don't throw - let the application continue without Firebase if it fails
     }
   }
 
   export function getFirestore(): admin.firestore.Firestore {
     if (!firestoreInstance) {
-      // This case should ideally not happen if init() is called correctly at startup.
-      // And if GOOGLE_APPLICATION_CREDENTIALS is not set, init() returns early.
-      logger.error(
-        "Firestore accessed before initialization or initialization failed and GOOGLE_APPLICATION_CREDENTIALS was set.",
+      const error = new Error(
+        "Firebase Admin SDK (Firestore) is not initialized. Ensure GOOGLE_APPLICATION_CREDENTIALS is set and points to a valid service account key file."
       );
-      throw new Error(
-        "Firebase Admin SDK (Firestore) is not initialized. Ensure GOOGLE_APPLICATION_CREDENTIALS is set and init() was successful.",
-      );
+      logger.error(error);
+      throw error;
     }
     return firestoreInstance;
   }

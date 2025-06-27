@@ -1,15 +1,14 @@
 import { Service } from "fastify-decorators";
 import { IUserNotification } from "../models/userNotification.entity";
-import { firestoreClient } from "../common/services/firestore.service";
 import { v4 as uuidv4 } from "uuid";
 
 @Service()
 export class UserNotificationDAO {
   /**
-   * Adds a new notification to the Firestore 'notification' collection.
+   * Adds a new notification. (Firestore logic removed)
    * The timestamp is generated within the function.
    * @param notificationData - The notification data to add.
-   * @returns The unique ID of the added conversation.
+   * @returns The unique ID of the added notification.
    */
   async addNotification(notificationData: IUserNotification): Promise<string> {
     try {
@@ -18,22 +17,19 @@ export class UserNotificationDAO {
 
       // Prepare the data to be stored with a dynamically generated timestamp
       const data = {
-        // id: notificationId,
         ...notificationData,
         timestamp: new Date().toISOString(),
       };
 
-      // Use the Firestore client to add the data
-      const addedNotificationId = await firestoreClient.setData(
-        "notifications",
-        notificationId,
-        data,
-      );
+      // TODO: Save to MongoDB or another storage instead of Firestore
+      // For now, just return the generated ID as a stub
+      // You can implement MongoDB logic here if needed
+      // Example: await NotificationModel.create(data);
 
       console.log(
-        `notification added successfully with ID: ${addedNotificationId}`,
+        `notification (stub) added successfully with ID: ${notificationId}`,
       );
-      return addedNotificationId;
+      return notificationId;
     } catch (error: any) {
       console.error("Error adding notification:", error);
       throw new Error(`Failed to add notification: ${error.message}`);

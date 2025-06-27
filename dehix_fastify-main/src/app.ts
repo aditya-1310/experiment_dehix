@@ -7,30 +7,30 @@ import swagger from "@fastify/swagger";
 import swagger_ui from "@fastify/swagger-ui";
 import { logger } from "./common/services/logger.service";
 import fs from "fs";
-import path from "path"; // Added path
-import fastifyMultipart from "fastify-multipart";
-import fastifyStatic from "@fastify/static"; // Added fastify-static
+import multipart from "@fastify/multipart";
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Env schema
 const schema = {
   type: "object",
-  required: ["SERVER_MONGO_CONN", "SERVER_PORT"], // Example, ensure these are actually required
+  required: ["SERVER_PORT"],
   properties: {
+    SERVER_PORT: { type: "string" },
+    SERVER_HOST: { type: "string" },
     SERVER_MONGO_CONN: { type: "string" },
-    SERVER_PORT: { type: "number" },
-    GOOGLE_APPLICATION_CREDENTIALS: { type: "string" }, // For Firebase Admin
-    FIREBASE_PROJECT_ID: { type: "string" }, // For Firebase Admin
-    BACKEND_PUBLIC_URL: { type: "string" }, // For constructing full file URLs
-    // Add other SERVER_ prefixed vars if they are fixed and known
+    GOOGLE_APPLICATION_CREDENTIALS: { type: "string" },
+    FIREBASE_PROJECT_ID: { type: "string" }
   },
-  patternProperties: {
-    "SERVER_(.*)": { type: "string" }, // Ensure this is active for other SERVER_ variables
-  },
-
-  // add key properties for specific property validation
+  additionalProperties: true
 };
 
-const app = fastify({ logger: logger });
+const app = fastify({ 
+  logger: logger
+});
 
 // Env path for stages
 const envPath = process.env.NODE_ENV
@@ -40,48 +40,27 @@ const envPath = process.env.NODE_ENV
 const packageJSON = JSON.parse(fs.readFileSync("./package.json", "utf8"));
 
 export const configure = async () => {
-  // Register handlers auto-bootstrap
-  app.register(fastifyEnv, {
-    schema: schema,
-    dotenv: { path: envPath },
-    data: process.env,
-  });
+  try {
+    // Register env first
+    await app.register(fastifyEnv, {
+      schema: schema,
+      dotenv: { path: envPath },
+      data: process.env,
+    });
 
-  await app.after();
+    await app.after();
 
-  app
-    .register(fastifyStatic, {
-      // Added for serving uploaded files
-      root: path.join(__dirname, "..", "uploads"), // Path to the uploads folder
-      prefix: "/uploads/", // Optional: prefix for the URL
-      decorateReply: true, // Decorate reply with `sendFile` and `download`
-      setHeaders: (res, _pathName, _stat) => {
-        // Prefixed unused parameters
-        // Optional: set custom headers
-        res.setHeader("Access-Control-Allow-Origin", "*");
-      },
-    })
-    .register(fastifyMultipart, {
-      limits: {
-        fieldNameSize: 100, // Max field name size in bytes
-        fieldSize: 100, // Max field value size in bytes
-        fields: 10, // Max number of non-file fields
-        fileSize: 10 * 1024 * 1024, // Max file size in bytes (10MB)
-        files: 1, // Max number of file fields
-        headerPairs: 2000, // Max number of header key=>value pairs
-      },
+    // Register multipart first as it's needed by other plugins
+    await app.register(multipart, {
       attachFieldsToBody: true,
-      onFile: (part) => {
-        console.log("Processing file:", {
-          filename: part.filename,
-          encoding: part.encoding,
-          mimetype: part.mimetype,
-          fieldname: part.fieldname,
-        });
-      },
-      throwFileSizeLimit: true,
-    })
-    .register(swagger, {
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB limit
+        files: 1 // Only allow 1 file per request
+      }
+    });
+
+    // Register swagger
+    await app.register(swagger, {
       mode: "dynamic",
       swagger: {
         info: {
@@ -94,12 +73,10 @@ export const configure = async () => {
             email: packageJSON.email,
           },
         },
-        // basePath: '',
         schemes: ["http", "https"],
-        consumes: ["application/json"],
+        consumes: ["application/json", "multipart/form-data"],
         produces: ["application/json"],
       },
-
       openapi: {
         info: {
           title: packageJSON.title,
@@ -120,14 +97,12 @@ export const configure = async () => {
             },
           },
         },
-        security: [
-          {
-            bearerAuth: [],
-          },
-        ],
+        security: [{ bearerAuth: [] }],
       },
-    })
-    .register(swagger_ui, {
+    });
+
+    // Register swagger UI
+    await app.register(swagger_ui, {
       routePrefix: "/documentation",
       uiConfig: {
         docExpansion: "none",
@@ -135,14 +110,12 @@ export const configure = async () => {
       },
       staticCSP: false,
       transformStaticCSP: (header) => header,
-      transformSpecification: (swaggerObject) => {
-        return swaggerObject;
-      },
+      transformSpecification: (swaggerObject) => swaggerObject,
       transformSpecificationClone: true,
     });
 
-  app
-    .register(cors, {
+    // Register CORS
+    await app.register(cors, {
       origin: ["*"],
       methods: ["OPTIONS", "GET", "PUT", "PATCH", "POST", "DELETE"],
       allowedHeaders: [
@@ -153,29 +126,28 @@ export const configure = async () => {
         "X-Requested-With",
         "x-api-key",
       ],
-    })
-    .register(initializeClients)
-    .register(bootstrap, {
-      // Specify directory with our controllers
-      directory: new URL(`controllers`, import.meta.url),
-
-      // Specify mask to match only our controllers
-      mask: /\.controller\./,
     });
 
-  try {
+    // Initialize clients (MongoDB, Firebase, etc)
+    await app.register(initializeClients);
+
+    // Register controllers last
+    await app.register(bootstrap, {
+      directory: join(__dirname, 'controllers'),
+      mask: /\.controller\.(ts|js)$/,
+      imports: true // Enable ES module imports
+    });
+
     await app.ready();
+    
+    if (!global.LAMBDA_ENV) {
+      const port = Number(app.config.SERVER_PORT) || 8080;
+      await app.listen({ port });
+      console.log(`Server listening on port ${port}`);
+    }
   } catch (error) {
-    console.log("An error occurred during initialization:", error);
-  }
-
-  if (!global.LAMBDA_ENV) {
-    console.log("Running App env");
-
-    app.listen({ port: Number(process.env.SERVER_PORT) }, (err: any) => {
-      if (err) console.error(err);
-      console.log(`server listening on ${process.env.SERVER_PORT}`);
-    });
+    console.error("Failed to configure application:", error);
+    process.exit(1);
   }
 };
 

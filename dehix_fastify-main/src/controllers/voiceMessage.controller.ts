@@ -8,7 +8,7 @@ import {
 } from "fastify-decorators";
 import { VoiceMessageService } from "../services/voiceMessage.service";
 // import { IVoiceMessage } from "../models/voiceMessage.model"; // Unused
-import { MultipartFile } from "fastify-multipart";
+import { MultipartFile } from "@fastify/multipart";
 import { AppError } from "../common/errors";
 import {
   voiceMessageUploadSchema,
