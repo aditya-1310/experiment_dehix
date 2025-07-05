@@ -161,8 +161,9 @@ export function CardsChat({
   const [audioUrl, setAudioUrl] = useState<string | null>(null); // For preview
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [recordingStartTime, setRecordingStartTime] = useState<number | null>(null);
-  const [recordingDuration, setRecordingDuration] = useState<number>(0); // In seconds
+  const [recordingDuration, setRecordingDuration] = useState<number>(0); // In seconds (primarily for display)
   const recordingDurationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const finalDurationRef = useRef<number>(0); // Ref to store the accurately calculated duration for sending
   const audioPreviewRef = useRef<HTMLAudioElement | null>(null);
 
 
@@ -527,7 +528,10 @@ export function CardsChat({
       recorder.onstop = () => {
         stream.getTracks().forEach(track => track.stop()); // Stop mic access
         setRecordingStatus("recorded");
-        if (recordingDurationIntervalRef.current) {
+        // Update display duration one last time if needed, using finalDurationRef.current
+        // This ensures the displayed duration matches what will be sent if it was a short recording.
+        setRecordingDuration(finalDurationRef.current);
+        if (recordingDurationIntervalRef.current) { // Should already be cleared by stopRecording
           clearInterval(recordingDurationIntervalRef.current);
         }
       };
@@ -537,8 +541,10 @@ export function CardsChat({
       setAudioBlob(null); // Clear previous blob
       setAudioUrl(null); // Clear previous URL
       setRecordingStartTime(Date.now());
-      setRecordingDuration(0);
+      setRecordingDuration(0); // For display
+      finalDurationRef.current = 0; // Reset final duration
       recordingDurationIntervalRef.current = setInterval(() => {
+        // This interval updates the displayed duration
         setRecordingDuration((prev) => prev + 1);
       }, 1000);
       setRecordingStatus("recording");
@@ -553,14 +559,23 @@ export function CardsChat({
 
   const stopRecording = () => {
     if (mediaRecorder && recordingStatus === "recording") {
-      mediaRecorder.stop();
-      // The onstop event handler will set status to "recorded" and clear interval
-      // Create blob and URL after chunks are all collected in onstop, or here if preferred.
-      // For simplicity, let's assume onstop handles setting the final audioBlob and audioUrl
+      // Calculate duration immediately
+      if (recordingStartTime) {
+        const durationMs = Date.now() - recordingStartTime;
+        // Ensure at least 1 second if any recording happened and was very short, primarily for backend validation.
+        // Or, if durationMs is 0 (e.g. click start then immediately stop), send 1.
+        finalDurationRef.current = Math.max(1, Math.round(durationMs / 1000));
+      } else {
+        // Fallback if recordingStartTime was somehow null, use current display duration, ensuring it's at least 1.
+        finalDurationRef.current = Math.max(1, recordingDuration);
+      }
+      mediaRecorder.stop(); // This will trigger 'onstop' which then uses finalDurationRef to set display
     }
-    // Ensure interval is cleared if stopRecording is called unexpectedly
+    // Clear interval here unconditionally as we are stopping.
+    // The onstop handler might also try to clear it, which is fine.
     if (recordingDurationIntervalRef.current) {
       clearInterval(recordingDurationIntervalRef.current);
+      recordingDurationIntervalRef.current = null; // Good practice to nullify after clearing
     }
   };
 
@@ -585,9 +600,11 @@ export function CardsChat({
     setAudioUrl(null);
     setMediaRecorder(null);
     setRecordingStatus("idle");
-    setRecordingDuration(0);
+    setRecordingDuration(0); // Reset display duration
+    finalDurationRef.current = 0; // Reset final duration ref
     if (recordingDurationIntervalRef.current) {
       clearInterval(recordingDurationIntervalRef.current);
+      recordingDurationIntervalRef.current = null;
     }
     toast({ title: "Recording discarded"});
   };
@@ -598,9 +615,53 @@ export function CardsChat({
       return;
     }
 
+    // Ensure finalDurationRef.current has a valid value (e.g., if somehow stopRecording wasn't perfectly synced)
+    // This is a safeguard; primary calculation is in stopRecording.
+    const durationToSend = finalDurationRef.current > 0 ? finalDurationRef.current : Math.max(1, recordingDuration);
+
+    // Pre-emptive client-side validation
+    const senderIdValue = user?.uid;
+    const receiverIdValue = receiverId; // This is already the calculated variable from props/state
+    const conversationIdValue = conversation?.id;
+    const durationStringValue = durationToSend.toString();
+
+    let validationError = "";
+    if (!senderIdValue || senderIdValue === '') {
+      validationError = "Sender ID is missing.";
+    } else if (!receiverIdValue || receiverIdValue === '') {
+      validationError = "Receiver ID is missing.";
+    } else if (!conversationIdValue || conversationIdValue === '') {
+      validationError = "Conversation ID is missing.";
+    } else if (!durationStringValue || durationStringValue === '0' || isNaN(parseInt(durationStringValue, 10)) || parseInt(durationStringValue, 10) <= 0) {
+      // Duration must be a string representing a number > 0
+      validationError = `Invalid duration: ${durationStringValue}. Must be a number greater than 0.`;
+    } else if (!audioBlob || audioBlob.size === 0) {
+      validationError = "Audio data is missing or empty.";
+    }
+
+    if (validationError) {
+      console.error("Client-side validation failed:", validationError, {
+        senderId: senderIdValue,
+        receiverId: receiverIdValue,
+        conversationId: conversationIdValue,
+        duration: durationStringValue,
+        audioBlobSize: audioBlob?.size
+      });
+      toast({
+        variant: "destructive",
+        title: "Upload Failed",
+        description: `Cannot send voice message: ${validationError}`,
+      });
+      setRecordingStatus("recorded"); // Revert status to allow re-recording or discard
+      return;
+    }
+
     setRecordingStatus("uploading");
     const formData = new FormData();
-    formData.append('file', audioBlob, `voice-message.${audioBlob.type.split('/')[1] || 'webm'}`);
+    // Ensure a simple filename like "voice-message.webm"
+    const fileExtension = (audioBlob.type.split('/')[1] || 'webm').split(';')[0];
+    const simpleFilename = `voice-message.${fileExtension}`;
+    formData.append('file', audioBlob, simpleFilename);
     formData.append('senderId', user.uid);
     // For individual chats, receiverId is the other participant. For group chats, it's the conversation ID.
     const receiverId = conversation.type === 'group'
@@ -608,8 +669,11 @@ export function CardsChat({
       : conversation.participants.find(p => p !== user.uid) || conversation.id;
     formData.append('receiverId', receiverId);
     formData.append('conversationId', conversation.id);
-    formData.append('duration', recordingDuration.toString());
+    // formData.append('duration', recordingDuration.toString()); // OLD
+    formData.append('duration', durationToSend.toString()); // USE THE ACCURATE DURATION
 
+    // Pre-emptive client-side validation is kept.
+    // Extensive diagnostic console.logs below are removed.
 
     try {
       // Using axiosInstance from the project
