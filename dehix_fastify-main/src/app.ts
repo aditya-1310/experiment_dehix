@@ -21,15 +21,14 @@ const schema = {
   properties: {
     SERVER_PORT: { type: "string" },
     SERVER_HOST: { type: "string" },
-    SERVER_MONGO_CONN: { type: "string" },
-    GOOGLE_APPLICATION_CREDENTIALS: { type: "string" },
-    FIREBASE_PROJECT_ID: { type: "string" }
+    SERVER_MONGO_CONN: { type: "string" }
   },
   additionalProperties: true
 };
 
 const app = fastify({ 
-  logger: logger
+  logger: logger,
+  pluginTimeout: 60000 // increase to 60 seconds to allow fastifyDecorators to load controllers
 });
 
 // Env path for stages
@@ -52,11 +51,11 @@ export const configure = async () => {
 
     // Register multipart first as it's needed by other plugins
     await app.register(multipart, {
-      attachFieldsToBody: true,
       limits: {
         fileSize: 5 * 1024 * 1024, // 5MB limit
         files: 1 // Only allow 1 file per request
-      }
+      },
+      throwFileSizeLimit: false
     });
 
     // Register swagger

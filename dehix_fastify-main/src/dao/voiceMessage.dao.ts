@@ -29,6 +29,7 @@ export class VoiceMessageDAO extends BaseDAO {
       sort,
     });
   }
+  
 
   // Add other specific methods if needed, for example:
   // async findBySenderId(senderId: string): Promise<IVoiceMessage[]> {

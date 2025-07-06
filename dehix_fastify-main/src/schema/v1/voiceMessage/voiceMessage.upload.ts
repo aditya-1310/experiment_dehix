@@ -10,7 +10,7 @@ export const voiceMessageUploadSchema = {
   security: [{ bearerAuth: [] }],
   body: {
     type: "object",
-    required: ["senderId", "receiverId", "conversationId", "duration", "file"],
+    required: ["senderId", "receiverId", "conversationId", "duration"],
     properties: {
       senderId: { type: "string", description: "ID of the message sender." },
       receiverId: {
@@ -24,12 +24,7 @@ export const voiceMessageUploadSchema = {
       duration: {
         type: "string",
         description: "Duration of the voice message in seconds.",
-      }, // Will be parsed to number
-      file: {
-        type: "object",
-        description:
-          "The audio file to upload. Content-Type should be one of the allowed audio types.",
-      }, // fastify-multipart handles file objects
+      },
     },
   },
   response: {

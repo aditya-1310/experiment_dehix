@@ -10,10 +10,10 @@ import { FileStorageService } from "../common/services/file-storage.service";
 
 // Define a simple interface for what we expect from the file upload part
 interface VoiceMessageUploadDTO {
-  senderId: { value: string };
-  receiverId: { value: string };
-  conversationId: { value: string };
-  duration: { value: number };
+  senderId: string;
+  receiverId: string;
+  conversationId: string;
+  duration: number;
   file: MultipartFile;
 }
 
@@ -44,10 +44,10 @@ export class VoiceMessageService {
       throw new AppError("No audio file provided.", 400);
     }
     if (
-      !data.senderId?.value ||
-      !data.receiverId?.value ||
-      !data.conversationId?.value ||
-      data.duration?.value === undefined
+      !data.senderId ||
+      !data.receiverId ||
+      !data.conversationId ||
+      data.duration === undefined
     ) {
       throw new AppError(
         "Missing required fields: senderId, receiverId, conversationId, or duration.",
@@ -75,7 +75,7 @@ export class VoiceMessageService {
     }
 
     const uniqueFilename = `${uuidv4()}-${data.file.filename}`;
-    const storagePath = `voice_messages/${data.conversationId.value}/${uniqueFilename}`;
+    const storagePath = `voice_messages/${data.conversationId}/${uniqueFilename}`;
 
     // Upload to S3 (or local, depending on FileStorageService implementation)
     const audioUrl = await this.fileStorageService.uploadFile(
@@ -84,11 +84,11 @@ export class VoiceMessageService {
     );
 
     const voiceMessageData: Partial<IVoiceMessage> = {
-      senderId: data.senderId.value,
-      receiverId: data.receiverId.value,
-      conversationId: data.conversationId.value,
+      senderId: data.senderId,
+      receiverId: data.receiverId,
+      conversationId: data.conversationId,
       audioUrl: audioUrl,
-      duration: Number(data.duration.value),
+      duration: Number(data.duration),
       timestamp: new Date(),
     };
 

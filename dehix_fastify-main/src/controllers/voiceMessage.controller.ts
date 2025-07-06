@@ -7,28 +7,25 @@ import {
   FastifyInstanceToken,
 } from "fastify-decorators";
 import { VoiceMessageService } from "../services/voiceMessage.service";
-// import { IVoiceMessage } from "../models/voiceMessage.model"; // Unused
 import { MultipartFile } from "@fastify/multipart";
 import { AppError } from "../common/errors";
 import {
   voiceMessageUploadSchema,
   getVoiceMessagesSchema,
-} from "../schema/v1/voiceMessage"; // We'll create these schema files
+} from "../schema/v1/voiceMessage";
 
-// Define a type for the expected multipart body
+// Updated request interface
 interface VoiceMessageUploadRequest extends FastifyRequest {
   body: {
-    senderId: { value: string };
-    receiverId: { value: string };
-    conversationId: { value: string };
-    duration: { value: string }; // Received as string from form-data
-    file: MultipartFile;
+    senderId: string;
+    receiverId: string;
+    conversationId: string;
+    duration: string;
   };
 }
 
 interface GetVoiceMessagesRequest extends FastifyRequest {
-  Query: {
-    // Changed from Querystring to Query
+  query: {
     conversationId: string;
   };
 }
@@ -47,38 +44,49 @@ export default class VoiceMessageController {
     reply: FastifyReply,
   ): Promise<void> {
     try {
-      // console.log('Received body:', request.body);
-      // console.log('Received file:', request.body?.file);
-
+      // Debug logging
+      console.log('=== VOICE MESSAGE UPLOAD DEBUG ===');
+      console.log('Content-Type:', request.headers['content-type']);
+      console.log('Is Multipart:', request.isMultipart());
+      console.log('Request Body:', request.body);
+      console.log('Request Body Type:', typeof request.body);
+      console.log('Request Body Keys:', Object.keys(request.body || {}));
+      
       if (!request.isMultipart()) {
         reply.code(400).send({ error: "Request is not multipart" });
+        console.log("Request is not multipart");
         return;
       }
 
-      // The fastify-multipart attachFieldsToBody should have processed the fields.
-      // However, files are typically on request.files or request.file if single.
-      // The typings might be tricky. Let's assume `request.body.file` is populated by `attachFieldsToBody: true`
-      // and `onFile` in app.ts might be logging it.
+      // Get file using request.file() since we removed attachFieldsToBody
+      const file = await request.file();
+      console.log('File:', file);
+      console.log('File filename:', file?.filename);
+      console.log('File mimetype:', file?.mimetype);
 
-      const { senderId, receiverId, conversationId, duration, file } =
-        request.body;
+      // Get other fields from request.body (they come as plain strings now)
+      const { senderId, receiverId, conversationId, duration } = request.body;
+      console.log('Extracted fields:', { senderId, receiverId, conversationId, duration });
 
       if (!file) {
+        console.log('No file uploaded');
         throw new AppError("No audio file was uploaded.", 400);
       }
-      if (
-        !senderId?.value ||
-        !receiverId?.value ||
-        !conversationId?.value ||
-        !duration?.value
-      ) {
+
+      if (!senderId || !receiverId || !conversationId || !duration) {
+        console.log('Missing fields:', { 
+          hasSenderId: !!senderId, 
+          hasReceiverId: !!receiverId, 
+          hasConversationId: !!conversationId, 
+          hasDuration: !!duration 
+        });
         throw new AppError(
           "Missing required fields: senderId, receiverId, conversationId, or duration.",
           400,
         );
       }
 
-      const durationValue = parseFloat(duration.value);
+      const durationValue = parseFloat(duration);
       if (isNaN(durationValue) || durationValue <= 0) {
         throw new AppError("Invalid duration provided.", 400);
       }
@@ -87,21 +95,21 @@ export default class VoiceMessageController {
         senderId,
         receiverId,
         conversationId,
-        duration: { value: durationValue }, // Pass the parsed number
+        duration: durationValue,
         file,
       };
 
-      // The service now uses the injected Fastify instance directly
       const voiceMessage = await this.voiceMessageService.createVoiceMessage(
         voiceMessageUploadData,
-        // this.instance, // No longer passed as argument
       );
+
       reply.code(201).send({
         message: "Voice message uploaded successfully",
         data: voiceMessage,
       });
     } catch (error) {
       this.instance.log.error("Error uploading voice message:", error);
+
       if (error instanceof AppError) {
         reply
           .code(error.statusCode)
@@ -110,7 +118,8 @@ export default class VoiceMessageController {
         const errWithMessage = error as {
           message: string;
           [key: string]: unknown;
-        }; // Cast for message
+        };
+
         if (
           typeof errWithMessage.message === "string" &&
           (errWithMessage.message.startsWith("FST_FILES_LIMIT") ||
@@ -124,10 +133,7 @@ export default class VoiceMessageController {
         } else {
           reply.code(500).send({
             error: "An unexpected error occurred during file upload.",
-            details:
-              typeof errWithMessage.message === "string"
-                ? errWithMessage.message
-                : "No details",
+            details: errWithMessage.message,
           });
         }
       } else {
@@ -144,17 +150,21 @@ export default class VoiceMessageController {
     reply: FastifyReply,
   ): Promise<void> {
     try {
-      const { conversationId } = request.query as { conversationId?: string }; // Cast query
+      const { conversationId } = request.query as { conversationId?: string };
+
       if (!conversationId) {
         throw new AppError("Conversation ID is required.", 400);
       }
+
       const messages =
         await this.voiceMessageService.getVoiceMessagesByConversation(
           conversationId,
         );
+
       reply.code(200).send({ data: messages });
     } catch (error) {
       this.instance.log.error("Error fetching voice messages:", error);
+
       if (error instanceof AppError) {
         reply.code(error.statusCode).send({ error: error.message });
       } else if (error && typeof error === "object" && "message" in error) {
@@ -162,6 +172,7 @@ export default class VoiceMessageController {
           message: string;
           [key: string]: unknown;
         };
+
         reply.code(500).send({
           error: "An unexpected error occurred.",
           details: errWithMessage.message,
