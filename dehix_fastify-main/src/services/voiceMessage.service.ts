@@ -62,7 +62,8 @@ export class VoiceMessageService {
       "audio/mp4",
       "audio/webm",
     ];
-    if (!allowedMimeTypes.includes(data.file.mimetype)) {
+    const mimeType = data.file.mimetype.split(";")[0];
+    if (!allowedMimeTypes.includes(mimeType)) {
       throw new AppError(
         `Invalid file type. Allowed types: ${allowedMimeTypes.join(", ")}`,
         400,

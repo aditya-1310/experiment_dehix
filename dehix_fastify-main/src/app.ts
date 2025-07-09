@@ -55,6 +55,7 @@ export const configure = async () => {
         fileSize: 5 * 1024 * 1024, // 5MB limit
         files: 1 // Only allow 1 file per request
       },
+      // attachFieldsToBody: true,
       throwFileSizeLimit: false
     });
 

@@ -8,62 +8,93 @@ export const voiceMessageUploadSchema = {
   consumes: ["multipart/form-data"],
   produces: ["application/json"],
   security: [{ bearerAuth: [] }],
-  body: {
-    type: "object",
-    required: ["senderId", "receiverId", "conversationId", "duration"],
-    properties: {
-      senderId: { type: "string", description: "ID of the message sender." },
-      receiverId: {
-        type: "string",
-        description: "ID of the message receiver (user or group).",
-      },
-      conversationId: {
-        type: "string",
-        description: "ID of the conversation.",
-      },
-      duration: {
-        type: "string",
-        description: "Duration of the voice message in seconds.",
+  requestBody: {
+    required: true,
+    content: {
+      "multipart/form-data": {
+        schema: {
+          type: "object",
+          required: ["senderId", "receiverId", "conversationId", "duration", "file"],
+          properties: {
+            senderId: {
+              type: "string",
+              description: "ID of the message sender.",
+            },
+            receiverId: {
+              type: "string",
+              description: "ID of the message receiver (user or group).",
+            },
+            conversationId: {
+              type: "string",
+              description: "ID of the conversation.",
+            },
+            duration: {
+              type: "string",
+              description: "Duration of the voice message in seconds.",
+            },
+            file: {
+              type: "string",
+              format: "binary",
+              description: "Audio file to be uploaded.",
+            },
+          },
+        },
       },
     },
   },
-  response: {
+  responses: {
     201: {
       description: "Voice message uploaded successfully.",
-      type: "object",
-      properties: {
-        message: { type: "string" },
-        data: {
-          type: "object",
-          properties: {
-            id: { type: "string" },
-            senderId: { type: "string" },
-            receiverId: { type: "string" },
-            conversationId: { type: "string" },
-            audioUrl: { type: "string" },
-            duration: { type: "number" },
-            timestamp: { type: "string", format: "date-time" },
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              message: { type: "string" },
+              data: {
+                type: "object",
+                properties: {
+                  id: { type: "string" },
+                  senderId: { type: "string" },
+                  receiverId: { type: "string" },
+                  conversationId: { type: "string" },
+                  audioUrl: { type: "string" },
+                  duration: { type: "number" },
+                  timestamp: { type: "string", format: "date-time" },
+                },
+              },
+            },
           },
         },
       },
     },
     400: {
-      description:
-        "Bad Request - Missing fields, invalid file type, or other validation errors.",
-      type: "object",
-      properties: {
-        error: { type: "string" },
-        details: { type: "string", nullable: true },
+      description: "Bad Request - Missing fields or invalid input.",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              error: { type: "string" },
+              details: { type: "string", nullable: true },
+            },
+          },
+        },
       },
     },
     401: commonErrorCodes[401],
     413: {
-      description:
-        "Payload Too Large - File or field size/count limit exceeded.",
-      type: "object",
-      properties: {
-        error: { type: "string" },
-        details: { type: "string", nullable: true },
+      description: "Payload Too Large - File or field size/count limit exceeded.",
+      content: {
+        "application/json": {
+          schema: {
+            type: "object",
+            properties: {
+              error: { type: "string" },
+              details: { type: "string", nullable: true },
+            },
+          },
+        },
       },
     },
     500: commonErrorCodes[500],

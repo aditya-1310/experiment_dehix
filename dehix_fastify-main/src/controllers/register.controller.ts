@@ -181,6 +181,13 @@ export default class RegisterController extends BaseController {
         "image/png",
         "image/gif",
         "application/pdf",
+        "audio/mpeg",
+        "audio/wav",
+        "audio/ogg",
+        "audio/mp4",
+        "audio/webm",
+        "audio/aac",
+        "audio/m4a",
       ];
       if (!allowedTypes.includes(mimetype)) {
         this.logger.warn(`Invalid file type received: ${mimetype}`);
